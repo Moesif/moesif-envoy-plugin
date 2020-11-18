@@ -5,7 +5,7 @@ local _M = {}
 -- Moesif Context
 local ctx = {
     application_id = nil,
-    batch_size = 25,
+    batch_size = 10,
     user_id_header = nil,
     company_id_header = nil,
     metadata = {},
