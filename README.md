@@ -12,7 +12,7 @@ and logs it to [Moesif API Analytics](https://www.moesif.com). This plugin lever
 
 In the `envoy.yaml`, enable lua http_filters and import moesif plugin in inline_code as shown below. Ensure that the `log.log_request` and `log.log_response` functions are being called respectively from `envoy_on_request` and `envoy_on_response` to capture events in Moesif.
 
-`Please note`: If you've not setuped envoy using docker, you could place all the plugin files under `moesif/` in any location, and you've to import the log file from that location, for example `local log = require("Path where moesif/plugins/log file is placed")`. 
+`Please note`: If you've not setup envoy using docker, you could place all the plugin files under `moesif/` in any location, and you've to import the log file from that location, for example `local log = require("Path where moesif/plugins/log file is placed")`. 
 
 ```yaml
  http_filters: 
