@@ -1,0 +1,7 @@
+FROM envoyproxy/envoy-dev:latest
+ADD moesif/core.lua /moesif/core.lua
+COPY moesif/core/ /moesif/core/
+COPY moesif/plugins/ /moesif/plugins/
+COPY compose/envoy.yaml /etc/envoy.yaml
+RUN chmod go+r /etc/envoy.yaml /moesif/core.lua
+CMD ["/usr/local/bin/envoy", "-c", "/etc/envoy.yaml", "-l", "debug", "--service-cluster", "proxy"]
