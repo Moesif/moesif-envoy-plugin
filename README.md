@@ -8,14 +8,25 @@ and logs it to [Moesif API Analytics](https://www.moesif.com). This plugin lever
 
 [Source Code on GitHub](https://github.com/Moesif/moesif-envoy-plugin)
 
-## How to use
+## How to install
 
-In the `envoy.yaml`, enable lua http_filters and import moesif plugin in inline_code as shown below. Ensure that the `log.log_request` and `log.log_response` functions are being called respectively from `envoy_on_request` and `envoy_on_response` to capture events in Moesif.
+### 1. Download plugin files
 
-`Please note`: If you've not setup envoy using docker, you could place all the plugin files under `moesif/` in any location, and you've to import the log file from that location, for example `local log = require("Path where moesif/plugins/log file is placed")`. 
+Download the latest release into your current working directory for Envoy.
+
+```bash
+ wget -O moesif-envoy-plugin.tar.gz https://github.com/Moesif/moesif-envoy-plugin/archive/0.1.0.tar.gz && \
+    tar -xf moesif-envoy-plugin.tar.gz -C ./ --strip-components 1
+```
+### 2. Update Envoy config
+
+In your `envoy.yaml`, add a `http_filters` section along with the below code snippet below. 
+
+Your Moesif Application Id can be found in the [_Moesif Portal_](https://www.moesif.com/).
+After signing up for a Moesif account, your Moesif Application Id will be displayed during the onboarding steps. 
 
 ```yaml
- http_filters: 
+ http_filters:
     - name: envoy.filters.http.lua
     typed_config:
         "@type": type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua
@@ -34,8 +45,24 @@ In the `envoy.yaml`, enable lua http_filters and import moesif plugin in inline_
         function envoy_on_response(response_handle)
             -- Log Event Response to Moesif
             log.log_response(response_handle)
-        end                
+        end
 ```
+
+_If you downloaded the files to a different location, replace `moesif.plugins.log` with the correct path_
+
+### 3. Restart Envoy
+Make a few API calls to test that they are logged to Moesif.
+
+## Docker Compose
+
+If you're using Docker, Moesif has a sample app available in the [example](https://github.com/Moesif/moesif-envoy-plugin/tree/master/example)
+To run the sample:
+
+1. `cd` into the example dir
+2. Add your Moesif Application Id to `envoy.yml`
+3. Run the command `docker-compose up -d`
+
+You can modify the `Dockerfile-envoy` and `envoy.yml` for use with your live application. 
 
 ## Configuration options
 
