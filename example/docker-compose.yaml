@@ -3,8 +3,8 @@ services:
 
   proxy:
     build:
-      context: ../
-      dockerfile: compose/Dockerfile-proxy
+      context: .
+      dockerfile: Dockerfile-envoy
     networks:
       - envoymesh
     ports:
