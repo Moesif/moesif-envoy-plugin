@@ -70,7 +70,7 @@ You can modify the `Dockerfile-envoy` and `envoy.yml` for use with your live app
 (__required__), _string_, is obtained via your Moesif Account, this is required.
 
 #### __`set_batch_size()`__
-(optional) _number_, default `25`. Maximum batch size when sending to Moesif.
+(optional) _number_, default `5`. Maximum batch size when sending to Moesif.
 
 #### __`set_user_id_header()`__
 (optional) _string_, Request header to use to identify the User in Moesif.
@@ -104,7 +104,7 @@ You can modify the `Dockerfile-envoy` and `envoy.yml` for use with your live app
 
 ## How to test
 
-1. Clone this repo and edit the `compose/envoy.yaml` file to set your actual Moesif Application Id.
+1. Clone this repo and edit the `example/envoy.yaml` file to set your actual Moesif Application Id.
 
     Your Moesif Application Id can be found in the [_Moesif Portal_](https://www.moesif.com/).
     After signing up for a Moesif account, your Moesif Application Id will be displayed during the onboarding steps. 
@@ -116,7 +116,7 @@ You can modify the `Dockerfile-envoy` and `envoy.yml` for use with your live app
 2. Build docker image and start container
 
     ```
-    cd compose && docker-compose up -d
+    cd example && docker-compose up -d
     ```
 
 3. By default, The container is listening on port 8000. You should now be able to make a request: 
