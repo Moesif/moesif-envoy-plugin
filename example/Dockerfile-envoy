@@ -1,4 +1,4 @@
-FROM envoyproxy/envoy-dev:latest
+FROM envoyproxy/envoy:v1.17-latest
 RUN cd /tmp \
   && apt-get update \
   && apt-get install -y curl apt-utils wget\
