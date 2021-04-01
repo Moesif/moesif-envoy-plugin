@@ -37,9 +37,13 @@ end
 -- Function fetch raw body
 function _M.fetch_raw_body(handle)
     local body = handle:body()
-    local body_size = body:length()
-    local body_bytes = body:getBytes(0, body_size)
-    return tostring(body_bytes)
+    if body ~= nil and body ~= '' then
+        local body_size = body:length()
+        local body_bytes = body:getBytes(0, body_size)
+        return tostring(body_bytes)
+    else
+        return nil
+    end
 end
 
 -- Function to process request/response body
