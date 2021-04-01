@@ -3,7 +3,7 @@ RUN cd /tmp \
   && apt-get update \
   && apt-get install -y curl apt-utils wget\
   && rm -rf /var/lib/apt/lists/*
-RUN "wget" "-O" "moesif-envoy-plugin.tar.gz" "https://github.com/Moesif/moesif-envoy-plugin/archive/0.1.0.tar.gz"
+RUN "wget" "-O" "moesif-envoy-plugin.tar.gz" "https://github.com/Moesif/moesif-envoy-plugin/archive/0.1.1.tar.gz"
 RUN "tar" "-xf" "moesif-envoy-plugin.tar.gz" "-C" "./" "--strip-components" "1"
 COPY envoy.yaml /etc/envoy.yaml
 RUN chmod go+r /etc/envoy.yaml /moesif/core.lua
