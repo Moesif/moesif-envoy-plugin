@@ -20,7 +20,7 @@ Download the latest release into your current working directory for Envoy.
 ```
 ### 2. Update Envoy config
 
-In your `envoy.yaml`, add a `http_filters` section along with the below code snippet below. 
+In your `envoy.yaml`, add a `http_filters` section along with the below code snippet. 
 
 Your Moesif Application Id can be found in the [_Moesif Portal_](https://www.moesif.com/).
 After signing up for a Moesif account, your Moesif Application Id will be displayed during the onboarding steps. 
@@ -46,6 +46,37 @@ After signing up for a Moesif account, your Moesif Application Id will be displa
             -- Log Event Response to Moesif
             log.log_response(response_handle)
         end
+```
+
+Add a `clusters` config with the below code snippet.
+
+```yaml
+ clusters:
+  - name: moesifprod
+    connect_timeout: 0.25s
+    type: logical_dns
+    http2_protocol_options: {}
+    lb_policy: round_robin
+    load_assignment:
+      cluster_name: moesifprod
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: api.moesif.net
+                port_value: 443
+    transport_socket:
+      name: envoy.transport_sockets.tls
+      typed_config:
+        "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+        sni: api.moesif.net
+        common_tls_context: 
+          validation_context:
+            match_subject_alt_names:
+            - exact: "*.moesif.net"
+            trusted_ca:
+              filename: /etc/ssl/certs/ca-certificates.crt
 ```
 
 _If you downloaded the files to a different location, replace `moesif.plugins.log` with the correct path_
