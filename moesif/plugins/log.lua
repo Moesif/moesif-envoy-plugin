@@ -108,6 +108,32 @@ batch_events = {}
 last_updated_time = nil
 app_confg = {}
 
+function build_url(handler)
+    local uri = nil
+    local x_forwarded_proto = handler:headers():get("x-forwarded-proto")
+    if x_forwarded_proto ~= nil then 
+        uri = x_forwarded_proto .. "://"
+    else
+        uri = "http" .. "://"
+    end
+
+    local authority = handler:headers():get(":authority")
+    if authority ~= nil then 
+        uri = uri .. authority
+    else
+        uri = uri .. "localhost"
+    end
+
+    local path = handler:headers():get(":path")
+    if path ~= nil then 
+        uri = uri .. path
+    else
+        uri = uri .. "/"
+    end
+
+    return uri
+end
+
 -- Function to log event request
 function _M.log_request(handler)
 
@@ -121,7 +147,7 @@ function _M.log_request(handler)
         moesif_request["time"] = core.helpers.get_current_time_in_ms()
 
         -- Request URI
-        moesif_request["uri"] = handler:headers():get("x-forwarded-proto") .. "://" .. handler:headers():get(":authority") .. handler:headers():get(":path")
+        moesif_request["uri"] = build_url(handler)
 
         -- Request Verb
         moesif_request["verb"] = handler:headers():get(":method")
@@ -139,7 +165,7 @@ function _M.log_request(handler)
             moesif_request["body"], moesif_request["transfer_encoding"] = nil, nil
         else
             local raw_request_body = core.helpers.fetch_raw_body(handler)
-            if raw_request_body ~= nil then 
+            if raw_request_body ~= nil and raw_request_body ~= '' then 
                 moesif_request["body"], moesif_request["transfer_encoding"] = core.helpers.parse_body(moesif_request["headers"], raw_request_body, ctx["request_body_masks"])
             end
         end
@@ -234,7 +260,7 @@ function _M.log_response(handler)
                     moesif_response["body"], moesif_response["transfer_encoding"] = nil, nil
                 else
                     local raw_response_body = core.helpers.fetch_raw_body(handler)
-                    if raw_response_body ~= nil then 
+                    if raw_response_body ~= nil and raw_response_body ~= ''  then 
                         moesif_response["body"], moesif_response["transfer_encoding"] = core.helpers.parse_body(moesif_response["headers"], raw_response_body, ctx["response_body_masks"])
                     end
                 end
@@ -267,7 +293,7 @@ function _M.log_response(handler)
                         [":authority"] = "moesifprod",
                         ["content-type"] = "application/json",
                         ["x-moesif-application-id"] = ctx["application_id"],
-                        ["user-agent"] = "envoy-plugin-moesif/0.1.0"
+                        ["user-agent"] = "envoy-plugin-moesif/0.1.1"
                     }
                     local ok, compressed_body = pcall(core.lib_deflate["CompressDeflate"], core.lib_deflate, encode_value)
                     if not ok then 
