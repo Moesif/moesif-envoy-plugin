@@ -15,7 +15,7 @@ and logs it to [Moesif API Analytics](https://www.moesif.com). This plugin lever
 Download the latest release into your current working directory for Envoy.
 
 ```bash
- wget -O moesif-envoy-plugin.tar.gz https://github.com/Moesif/moesif-envoy-plugin/archive/0.1.1.tar.gz && \
+ wget -O moesif-envoy-plugin.tar.gz https://github.com/Moesif/moesif-envoy-plugin/archive/0.1.2.tar.gz && \
     tar -xf moesif-envoy-plugin.tar.gz -C ./ --strip-components 1
 ```
 ### 2. Update Envoy config
@@ -94,6 +94,11 @@ To run the sample:
 3. Run the command `docker-compose up -d`
 
 You can modify the `Dockerfile-envoy` and `envoy.yml` for use with your live application. 
+
+If you want to use `https`, please do the following - 
+1. Add your Moesif Application Id to `envoy-https.yml`
+2. Expose port `"8443:8443"` in `docker-compose.yaml`
+3. When running the envoy, use `envoy-https.yaml` file. Change last line to `CMD ["/usr/local/bin/envoy", "-c", "/etc/envoy-https.yaml", "-l", "debug", "--service-cluster", "proxy"]` in `Dockerfile-envoy`
 
 ## Configuration options
 
