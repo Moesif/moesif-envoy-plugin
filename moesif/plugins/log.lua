@@ -138,7 +138,7 @@ end
 function _M.log_request(handler)
 
     -- Check if application Id is set
-    if ctx["application_id"] ~= nil then 
+    if ctx["application_id"] ~= nil and string.lower(handler:headers():get(":method")) ~= "connect" then 
         -- Create object to store moesif event and moesif event request
         local moesif_event = {}
         local moesif_request = {}
@@ -174,7 +174,15 @@ function _M.log_request(handler)
         moesif_request["user_agent_string"] = handler:headers():get("user-agent")
 
         -- Ip Address
-        moesif_request["ip_address"] = handler:streamInfo():downstreamDirectRemoteAddress()
+        local direct_remote_address, err = pcall(handler:streamInfo():downstreamDirectRemoteAddress())
+        if err == nil then 
+            moesif_request["ip_address"] = direct_remote_address
+        else
+            local local_address, errL = pcall(handler:streamInfo():downstreamLocalAddress())
+            if errL == nil then 
+                moesif_request["ip_address"] = local_address
+            end
+        end
 
         -- User Id
         if ctx["user_id_header"] ~= nil then 
@@ -194,7 +202,7 @@ function _M.log_request(handler)
         
     else
         if ctx["debug"] then 
-            handler:logDebug("[moesif] !!!!! Please provide Moesif application Id !!!!!")
+            handler:logDebug("[moesif] !!!!! Please provide Moesif application Id. Please note, Moesif will skip logging the event incase the request method is CONNECT even if application Id is already provided. !!!!!")
         end
     end
 end
@@ -293,7 +301,7 @@ function _M.log_response(handler)
                         [":authority"] = "moesifprod",
                         ["content-type"] = "application/json",
                         ["x-moesif-application-id"] = ctx["application_id"],
-                        ["user-agent"] = "envoy-plugin-moesif/0.1.1"
+                        ["user-agent"] = "envoy-plugin-moesif/0.1.2"
                     }
                     local ok, compressed_body = pcall(core.lib_deflate["CompressDeflate"], core.lib_deflate, encode_value)
                     if not ok then 
