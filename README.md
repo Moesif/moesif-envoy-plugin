@@ -86,19 +86,28 @@ Make a few API calls to test that they are logged to Moesif.
 
 ## Docker Compose
 
-If you're using Docker, Moesif has a sample app available in the [example](https://github.com/Moesif/moesif-envoy-plugin/tree/master/example)
-To run the sample:
+If you're using Docker, Moesif has a working example usign Docker Compose in the [example dir](https://github.com/Moesif/moesif-envoy-plugin/tree/master/example)
+
+### To run the example:
+
+Modify the example files `Dockerfile-envoy` and `envoy.yml` for use with your live application. 
 
 1. `cd` into the example dir
 2. Add your Moesif Application Id to `envoy.yml`
 3. Run the command `docker-compose up -d`
 
-You can modify the `Dockerfile-envoy` and `envoy.yml` for use with your live application. 
+### To run the HTTPS example:
 
-If you want to use `https`, please do the following - 
-1. Add your Moesif Application Id to `envoy-https.yml`
-2. Expose port `"8443:8443"` in `docker-compose.yaml`
-3. When running the envoy, use `envoy-https.yaml` file. Change last line to `CMD ["/usr/local/bin/envoy", "-c", "/etc/envoy-https.yaml", "-l", "debug", "--service-cluster", "proxy"]` in `Dockerfile-envoy`
+Envoy's Dynamic forward proxy will not normally terminate an SSL connection and will instead tunnel to proxied service. 
+In order for API observability tools like Moesif to capture traffic, you need to configure Envoy to terminate the SSL connection.
+
+In order to do so, do the following:
+
+1. `cd` into the example dir
+2. Add your Moesif Application Id to `envoy-https.yml`
+3. Expose port `"8443:8443"` in `docker-compose.yaml`
+4. Update the Docker cmd to use `envoy-https.yaml` instead of `envoy.yml`. This can be done by updating last line in `Dockerfile-envoy` to `CMD ["/usr/local/bin/envoy", "-c", "/etc/envoy-https.yaml", "-l", "debug", "--service-cluster", "proxy"]`
+5. Run the command `docker-compose up -d`
 
 ## Configuration options
 
