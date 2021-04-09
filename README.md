@@ -106,8 +106,24 @@ In order to do so, do the following:
 1. `cd` into the example dir
 2. Add your Moesif Application Id to `envoy-https.yml`
 3. Expose port `"8443:8443"` in `docker-compose.yaml`
-4. Update the Docker cmd to use `envoy-https.yaml` instead of `envoy.yml`. This can be done by updating last line in `Dockerfile-envoy` to `CMD ["/usr/local/bin/envoy", "-c", "/etc/envoy-https.yaml", "-l", "debug", "--service-cluster", "proxy"]`
-5. Run the command `docker-compose up -d`
+4. Generate a self-signed certificate pair using: (Please change the common name as required)
+    `$ openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 3650 -nodes -subj '/CN=localhost'`
+5. Please update the keys in the `transport_socket` section in `envoy-https.yml`. Incase, if you don't want to copy the keys in the file, you could provide the path where keys are located. Please update the section if passing the path - 
+
+```yaml
+transport_socket:
+name: envoy.transport_sockets.tls
+typed_config:
+    "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
+    common_tls_context:
+    tls_certificates:
+        certificate_chain: { filename: "/etc/envoy/ssl/cert.pem" }
+        private_key: { filename: "/etc/envoy/ssl/key.pem" }
+        password: { inline_string: "XXXXX" }    
+```
+
+6. Update the Docker cmd to use `envoy-https.yaml` instead of `envoy.yml`. This can be done by updating last line in `Dockerfile-envoy` to `CMD ["/usr/local/bin/envoy", "-c", "/etc/envoy-https.yaml", "-l", "debug", "--service-cluster", "proxy"]`
+7. Run the command `docker-compose up -d`
 
 ## Configuration options
 
