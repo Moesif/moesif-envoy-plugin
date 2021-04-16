@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    spec:
+      containers:
+      - name: nginx
+        image: nginx
+        ports:
+        - containerPort: 9000
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "True"
+        sidecar.istio.io/userVolume: '{"lua-libs":{"configMap":{"name": "lua-libs","items":[{"key":"moesif-core-base64.lua", "path":"moesif/core/base64.lua"},{"key":"moesif-core-lib_deflate.lua", "path":"moesif/core/lib_deflate.lua"},{"key":"moesif-plugins-log.lua", "path":"moesif/plugins/log.lua"},{"key":"moesif-core-helpers.lua", "path":"moesif/core/helpers.lua"},{"key":"moesif-core-zzlib.lua", "path":"moesif/core/zzlib.lua"},{"key":"moesif-core-json.lua", "path":"moesif/core/json.lua"},{"key":"moesif-core.lua", "path":"moesif/core.lua"}]}}}'
+        sidecar.istio.io/userVolumeMount: '{"lua-libs":{"mountPath": "/usr/local/share/lua/5.1", "readOnly":true}}'
+      labels:
+        app: nginx

@@ -197,6 +197,96 @@ typed_config:
 
 Congratulations! If everything was done correctly, Moesif should now be tracking all network requests. If you have any issues with set up, please reach out to support@moesif.com.
 
+## How to enable Envoy plugin inside Istio's sidecars
+
+1. If you've `istio` already installed, and `istio-system` namespace available, skip this step. If not you could download and install `istio`. 
+
+- Download (Linux or macOS):
+
+    ```bash
+    curl -L https://istio.io/downloadIstio | sh -
+    ```
+
+- Move to the Istio package directory. For example, if the package is istio-1.9.2:
+
+    ```bash
+    cd istio-1.9.2
+    ```
+
+- Add the istioctl client to your path (Linux or macOS):
+
+    ```bash
+    export PATH=$PWD/bin:$PATH
+    ```
+
+- For this example, we use the demo configuration profile. It’s selected to have a good set of defaults for testing, but there are other profiles for production or performance testing.
+
+    ```bash
+    istioctl install --set profile=demo
+    ```
+
+2. Clone this repo and edit the `istio-example/envoy-filter.yaml` file to set your actual Moesif Application Id.
+
+    Your Moesif Application Id can be found in the [_Moesif Portal_](https://www.moesif.com/).
+    After signing up for a Moesif account, your Moesif Application Id will be displayed during the onboarding steps. 
+
+    You can always find your Moesif Application Id at any time by logging 
+    into the [_Moesif Portal_](https://www.moesif.com/), click on the top right menu,
+    and then clicking _API Keys_.
+
+3. At this point, make sure `istio-system` namespace is available since we're going to deploy app and enable envoy-filter in `istio-system` for this particular example. It could be verified by running this command
+
+    ```bash
+    kubectl get namespace
+    ```
+
+4. Navigate to `istio-example` directory.
+
+5. Create a configMap which will be consumed by Pods as configuration file in a volume.
+
+    ```bash
+    kubectl create -f configMap.yaml -n istio-system
+    ```
+
+6. Create a Pod and manually inject the sidecar before deploying the nginx application with the following command:
+
+    ```bash
+    kubectl apply -n istio-system -f <(istioctl kube-inject -f nginx.yaml)
+    ```
+7. Verify the `nginx` pod is running
+    ```bash
+    kubectl get pods -n istio-system
+    ```
+
+8. Verify the deployment is ready and available
+    ```bash
+    kubectl get deployment -o wide -n istio-system
+    ```
+
+9. Create Envoy filter
+
+    ```bash
+    kubectl apply -f envoy-filter.yaml -n istio-system
+    ```
+
+10. Set the SOURCE_POD environment variable to the name of your source pod:
+
+    ```bash
+    export SOURCE_POD=$(kubectl get pod -n istio-system -l app=nginx -o jsonpath={.items..metadata.name})
+    echo $SOURCE_POD
+    ```
+11. Now you could send request to an external service, and data should be captured in the corresponding Moesif account.
+
+    ```bash
+    kubectl -n istio-system exec "$SOURCE_POD" -c nginx -- curl -XGET -sSL  -H "Content-Type:application/json" -o /dev/null -D - http://httpbin.org/uuid -d "{\"test\": \"sf\"}"
+    ```
+
+12. You could tail Logs
+    ```bash
+    kubectl logs --follow -l app=nginx -c istio-proxy -n istio-system
+    ```
+Congratulations! If everything was done correctly, Moesif should now be tracking all network requests. If you have any issues with set up, please reach out to support@moesif.com.
+
 ## Other integrations
 
 To view more documentation on integration options, please visit __[the Integration Options Documentation](https://www.moesif.com/docs/getting-started/integration-options/).__
