@@ -1,0 +1,68 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: moesif-testing-envoy-lua
+  namespace: istio-system
+spec:
+  configPatches:
+    # The first patch adds the lua filter to the listener/http connection manager
+  - applyTo: HTTP_FILTER
+    match:
+      context: SIDECAR_OUTBOUND
+      listener:
+        filterChain:
+          filter:
+            name: "envoy.filters.network.http_connection_manager"
+            subFilter:
+              name: "envoy.filters.http.router"
+    patch:
+      operation: INSERT_BEFORE
+      value:
+        name: envoy.lua
+        typed_config:
+          "@type": "type.googleapis.com/envoy.extensions.filters.http.lua.v3.Lua"
+          inlineCode: |
+            local log = require("moesif.plugins.log")
+
+            -- Moesif configs
+            log.set_application_id("Your Moesif Application Id")
+            -- ... For other options refer readme configuration options
+
+            function envoy_on_request(request_handle)
+              -- Log Event Request to Moesif
+              log.log_request(request_handle)
+            end
+            function envoy_on_response(response_handle)
+              -- Log Event Response to Moesif
+              log.log_response(response_handle)
+            end
+  - applyTo: CLUSTER
+    match:
+      context: SIDECAR_OUTBOUND
+    patch:
+      operation: ADD
+      value: # cluster specification
+        name: moesifprod
+        type: LOGICAL_DNS
+        connect_timeout: 0.5s
+        lb_policy: ROUND_ROBIN
+        load_assignment:
+          cluster_name: moesifprod
+          endpoints:
+          - lb_endpoints:
+            - endpoint:
+                address:
+                  socket_address:
+                    address: api.moesif.net
+                    port_value: 443
+        transport_socket:
+          name: envoy.transport_sockets.tls
+          typed_config:
+            "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+            sni: api.moesif.net
+            common_tls_context: 
+              validation_context:
+                match_subject_alt_names:
+                - exact: "*.moesif.net"
+                trusted_ca:
+                  filename: /etc/ssl/certs/ca-certificates.crt
