@@ -28,10 +28,18 @@ local function base64_encode_body(body)
     return base64.encode(body), 'base64'
 end
 
+local function safe_clock ()
+    if os.clock == nil then
+        return 0.0
+    else
+        return os.clock()
+    end
+end
+
 -- Function to get current time in milliseconds
 function _M.get_current_time_in_ms()
     local current_time_since_epoch = os.time(os.date("!*t"))
-    return os.date("!%Y-%m-%dT%H:%M:%S.", current_time_since_epoch) .. string.match(tostring(os.clock() * 1000), "%d%.(%d+)")
+    return os.date("!%Y-%m-%dT%H:%M:%S.", current_time_since_epoch) .. string.match(tostring(safe_clock() * 1000), "%d%.(%d+)")
 end
 
 -- Function fetch raw body
