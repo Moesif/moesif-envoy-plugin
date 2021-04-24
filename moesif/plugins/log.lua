@@ -134,6 +134,14 @@ function build_url(handler)
     return uri
 end
 
+function getLocalAddress(handler)
+    return handler:streamInfo():downstreamLocalAddress()
+end
+
+function getRemoteAddress(handler)
+    return handler:streamInfo():downstreamDirectRemoteAddress()
+end
+
 -- Function to log event request
 function _M.log_request(handler)
 
@@ -174,12 +182,12 @@ function _M.log_request(handler)
         moesif_request["user_agent_string"] = handler:headers():get("user-agent")
 
         -- Ip Address
-        local direct_remote_address, err = pcall(handler:streamInfo():downstreamDirectRemoteAddress())
-        if err == nil then 
+        local found_remote_address, direct_remote_address = pcall(getRemoteAddress, handler)
+        if found_remote_address then 
             moesif_request["ip_address"] = direct_remote_address
         else
-            local local_address, errL = pcall(handler:streamInfo():downstreamLocalAddress())
-            if errL == nil then 
+            local found_local_address, local_address = pcall(getLocalAddress, handler)
+            if found_local_address then
                 moesif_request["ip_address"] = local_address
             end
         end
