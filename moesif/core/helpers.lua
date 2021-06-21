@@ -30,16 +30,16 @@ end
 
 local function safe_clock ()
     if os.clock == nil then
-        return 0.0
+        return string.format('%.2f', 0.0 * 1000)
     else
-        return os.clock()
+        return tostring(os.clock() * 1000)
     end
 end
 
 -- Function to get current time in milliseconds
 function _M.get_current_time_in_ms()
     local current_time_since_epoch = os.time(os.date("!*t"))
-    return os.date("!%Y-%m-%dT%H:%M:%S.", current_time_since_epoch) .. string.match(tostring(safe_clock() * 1000), "%d%.(%d+)")
+    return os.date("!%Y-%m-%dT%H:%M:%S.", current_time_since_epoch) .. string.match(safe_clock(), "%d%.(%d+)")
 end
 
 -- Function fetch raw body

@@ -309,7 +309,7 @@ function _M.log_response(handler)
                         [":authority"] = "moesifprod",
                         ["content-type"] = "application/json",
                         ["x-moesif-application-id"] = ctx["application_id"],
-                        ["user-agent"] = "envoy-plugin-moesif/0.1.2"
+                        ["user-agent"] = "envoy-plugin-moesif/0.1.4"
                     }
                     local ok, compressed_body = pcall(core.lib_deflate["CompressDeflate"], core.lib_deflate, encode_value)
                     if not ok then 
