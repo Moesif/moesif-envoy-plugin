@@ -15,7 +15,7 @@ and logs it to [Moesif API Analytics](https://www.moesif.com). This plugin lever
 Download the latest release into your current working directory for Envoy.
 
 ```bash
- wget -O moesif-envoy-plugin.tar.gz https://github.com/Moesif/moesif-envoy-plugin/archive/0.1.3.tar.gz && \
+ wget -O moesif-envoy-plugin.tar.gz https://github.com/Moesif/moesif-envoy-plugin/archive/0.1.5.tar.gz && \
     tar -xf moesif-envoy-plugin.tar.gz -C ./ --strip-components 1
 ```
 ### 2. Update Envoy config
