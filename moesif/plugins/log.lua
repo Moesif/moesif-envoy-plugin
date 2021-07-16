@@ -16,6 +16,8 @@ local ctx = {
     request_body_masks = {},
     response_body_masks = {},
     debug = false,
+    send_event_endpoint = "/_moesif/api/v1/events/batch",
+    get_app_config_endpoint = "/_moesif/api/v1/config",
 
 }
 
@@ -100,6 +102,20 @@ end
 function _M.set_debug(debug)
     if type(debug) == "boolean" then 
         ctx["debug"] = debug
+    end
+end
+
+-- Set application Id
+function _M.set_send_event_endpoint(send_event_endpoint)
+    if type(send_event_endpoint) == "string" then 
+        ctx["send_event_endpoint"] = send_event_endpoint
+    end
+end
+
+-- Set application Id
+function _M.set_get_app_config_endpoint(get_app_config_endpoint)
+    if type(get_app_config_endpoint) == "string" then 
+        ctx["get_app_config_endpoint"] = get_app_config_endpoint
     end
 end
 
@@ -305,11 +321,11 @@ function _M.log_response(handler)
                     local payload
                     local send_events_headers = {
                         [":method"] = "POST",
-                        [":path"] = "/_moesif/api/v1/events/batch",
+                        [":path"] = ctx["send_event_endpoint"],
                         [":authority"] = "moesifprod",
                         ["content-type"] = "application/json",
                         ["x-moesif-application-id"] = ctx["application_id"],
-                        ["user-agent"] = "envoy-plugin-moesif/0.1.4"
+                        ["user-agent"] = "envoy-plugin-moesif/0.1.5"
                     }
                     local ok, compressed_body = pcall(core.lib_deflate["CompressDeflate"], core.lib_deflate, encode_value)
                     if not ok then 
@@ -335,7 +351,7 @@ function _M.log_response(handler)
                             "moesifprod",
                             {
                                 [":method"] = "GET",
-                                [":path"] = "/_moesif/api/v1/config",
+                                [":path"] = ctx["get_app_config_endpoint"],
                                 [":authority"] = "moesifprod",
                                 ["content-type"] = "application/json",
                                 ["x-moesif-application-id"] = ctx["application_id"]
