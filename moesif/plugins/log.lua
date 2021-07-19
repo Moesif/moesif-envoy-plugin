@@ -188,9 +188,12 @@ function _M.log_request(handler)
         if ctx["disable_capture_request_body"] then 
             moesif_request["body"], moesif_request["transfer_encoding"] = nil, nil
         else
+            handler:logDebug("[moesif] Fetching Raw Request Body") 
             local raw_request_body = core.helpers.fetch_raw_body(handler)
             if raw_request_body ~= nil and raw_request_body ~= '' then 
                 moesif_request["body"], moesif_request["transfer_encoding"] = core.helpers.parse_body(moesif_request["headers"], raw_request_body, ctx["request_body_masks"])
+            else
+                handler:logDebug("[moesif] Fetched Raw Request Body is nil") 
             end
         end
 
@@ -231,6 +234,19 @@ function _M.log_request(handler)
     end
 end
 
+function dump(o)
+    if type(o) == 'table' then
+       local s = '{ '
+       for k,v in pairs(o) do
+          if type(k) ~= 'number' then k = '"'..k..'"' end
+          s = s .. '['..k..'] = ' .. dump(v) .. ','
+       end
+       return s .. '} '
+    else
+       return tostring(o)
+    end
+ end
+
 -- Function to log event response and send event to Moesif
 function _M.log_response(handler)
 
@@ -250,8 +266,11 @@ function _M.log_response(handler)
 
             -- If the app config body is of type string, decode it to convert it to table. 
             -- This will only execute first time when the response is of type string.
-            if app_config ~= nil and type(app_config) == "string" then 
-                app_config = core.json:decode(app_config)
+            if app_config ~= nil and type(app_config) == "string" and string.sub(app_config, 1, 1) == "{" then
+                local is_config_decoded, decode_config_result = pcall(core.json.decode, core.json, app_config)
+                if is_config_decoded and decode_config_result ~= nil then 
+                    app_config = decode_config_result
+                end
             end
 
             -- Generate random percentage to sample event
@@ -291,9 +310,12 @@ function _M.log_response(handler)
                 if ctx["disable_capture_response_body"] then 
                     moesif_response["body"], moesif_response["transfer_encoding"] = nil, nil
                 else
+                    handler:logDebug("[moesif] Fetching Raw Response Body") 
                     local raw_response_body = core.helpers.fetch_raw_body(handler)
                     if raw_response_body ~= nil and raw_response_body ~= ''  then 
                         moesif_response["body"], moesif_response["transfer_encoding"] = core.helpers.parse_body(moesif_response["headers"], raw_response_body, ctx["response_body_masks"])
+                    else
+                        handler:logDebug("[moesif] Fetched Raw Response Body is nil") 
                     end
                 end
 
@@ -325,7 +347,7 @@ function _M.log_response(handler)
                         [":authority"] = "moesifprod",
                         ["content-type"] = "application/json",
                         ["x-moesif-application-id"] = ctx["application_id"],
-                        ["user-agent"] = "envoy-plugin-moesif/0.1.5"
+                        ["user-agent"] = "envoy-plugin-moesif/0.1.6"
                     }
                     local ok, compressed_body = pcall(core.lib_deflate["CompressDeflate"], core.lib_deflate, encode_value)
                     if not ok then 
@@ -360,11 +382,19 @@ function _M.log_response(handler)
                             5000
                         )
 
-                        -- Save app config response
-                        app_config = app_config_body
+                        if app_config_body ~= nil and type(app_config_body) == "string" and string.sub(app_config_body, 1, 1) == "{"  then 
+                            -- Save app config response
+                            app_config = app_config_body
 
-                        if debug then 
-                            handler:logDebug("[moesif] successfully fetched the application configuration")
+                            if debug then 
+                                handler:logDebug("[moesif] successfully fetched the application configuration")
+                            end
+                        else
+                            if debug then 
+                                handler:logDebug("[moesif] Error while fetching the application configuration, response headers and body - ")
+                                handler:logDebug(dump(app_config_headers))
+                                handler:logDebug(dump(app_config_body))
+                            end
                         end
 
                         -- Update the last updated time since we fetch the app config
