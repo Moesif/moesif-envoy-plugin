@@ -361,7 +361,7 @@ function _M.log_response(handler)
                         [":authority"] = "moesifprod",
                         ["content-type"] = "application/json",
                         ["x-moesif-application-id"] = ctx["application_id"],
-                        ["user-agent"] = "envoy-plugin-moesif/0.1.6"
+                        ["user-agent"] = "envoy-plugin-moesif/0.1.7"
                     }
                     local ok, compressed_body = pcall(core.lib_deflate["CompressDeflate"], core.lib_deflate, encode_value)
                     if not ok then 
@@ -374,7 +374,7 @@ function _M.log_response(handler)
                     -- Send events to moesif
                     local send_events_headers, _ = handler:httpCall("moesifprod", send_events_headers, payload, 5000, false)
 
-                    if send_events_headers[":status"] ~= nil and tonumber(send_events_headers[":status"]) == 201 then 
+                    if send_events_headers[":status"] ~= nil and (tonumber(send_events_headers[":status"]) == 200 or tonumber(send_events_headers[":status"]) == 201) then 
                         if debug then 
                             handler:logDebug("[moesif] Events sent successfully")
                         end
