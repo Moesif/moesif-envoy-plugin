@@ -188,12 +188,19 @@ function _M.log_request(handler)
         if ctx["disable_capture_request_body"] then 
             moesif_request["body"], moesif_request["transfer_encoding"] = nil, nil
         else
-            handler:logDebug("[moesif] Fetching Raw Request Body") 
-            local raw_request_body = core.helpers.fetch_raw_body(handler)
+            if ctx["debug"] then 
+                handler:logDebug("[moesif] Fetching Raw Request Body") 
+            end
+            local raw_request_body = core.helpers.fetch_raw_body(handler, ctx["debug"])
             if raw_request_body ~= nil and raw_request_body ~= '' then 
-                moesif_request["body"], moesif_request["transfer_encoding"] = core.helpers.parse_body(moesif_request["headers"], raw_request_body, ctx["request_body_masks"])
+                local is_req_body_parsed, parsed_req_body, parsed_req_body_encoding = pcall(core.helpers.parse_body, moesif_request["headers"], raw_request_body, ctx["request_body_masks"])
+                if is_req_body_parsed then 
+                    moesif_request["body"], moesif_request["transfer_encoding"] = parsed_req_body, parsed_req_body_encoding
+                end
             else
-                handler:logDebug("[moesif] Fetched Raw Request Body is nil") 
+                if ctx["debug"] then 
+                    handler:logDebug("[moesif] Fetched Raw Request Body is nil") 
+                end
             end
         end
 
@@ -310,12 +317,19 @@ function _M.log_response(handler)
                 if ctx["disable_capture_response_body"] then 
                     moesif_response["body"], moesif_response["transfer_encoding"] = nil, nil
                 else
-                    handler:logDebug("[moesif] Fetching Raw Response Body") 
-                    local raw_response_body = core.helpers.fetch_raw_body(handler)
+                    if debug then
+                        handler:logDebug("[moesif] Fetching Raw Response Body") 
+                    end
+                    local raw_response_body = core.helpers.fetch_raw_body(handler, debug)
                     if raw_response_body ~= nil and raw_response_body ~= ''  then 
-                        moesif_response["body"], moesif_response["transfer_encoding"] = core.helpers.parse_body(moesif_response["headers"], raw_response_body, ctx["response_body_masks"])
+                        local is_rsp_body_parsed, parsed_rsp_body, parsed_rsp_body_encoding = pcall(core.helpers.parse_body, moesif_response["headers"], raw_response_body, ctx["response_body_masks"])
+                        if is_rsp_body_parsed then 
+                            moesif_response["body"], moesif_response["transfer_encoding"] = parsed_rsp_body, parsed_rsp_body_encoding
+                        end
                     else
-                        handler:logDebug("[moesif] Fetched Raw Response Body is nil") 
+                        if debug then 
+                            handler:logDebug("[moesif] Fetched Raw Response Body is nil") 
+                        end
                     end
                 end
 
@@ -334,7 +348,7 @@ function _M.log_response(handler)
                 table.insert(batch_events, moesif_event)
 
                 -- Check if number of events in the batch matches batch size
-                if #batch_events == ctx["batch_size"] then 
+                if #batch_events >= ctx["batch_size"] then 
                     
                     -- Encode body before sending
                     local encode_value = core.json:encode(batch_events)
@@ -358,14 +372,16 @@ function _M.log_response(handler)
                     end 
 
                     -- Send events to moesif
-                    local _, _ = handler:httpCall("moesifprod", send_events_headers, payload, 5000, true)
+                    local send_events_headers, _ = handler:httpCall("moesifprod", send_events_headers, payload, 5000, false)
 
-                    if debug then 
-                        handler:logDebug("[moesif] Events sent successfully")
+                    if send_events_headers[":status"] ~= nil and tonumber(send_events_headers[":status"]) == 201 then 
+                        if debug then 
+                            handler:logDebug("[moesif] Events sent successfully")
+                        end
+
+                        -- Reset event queue
+                        batch_events = {}
                     end
-
-                    -- Reset event queue
-                    batch_events = {}
 
                     -- Check if need to fetch application configuration
                     if last_updated_time == nil or (os.time() > last_updated_time + 300) then

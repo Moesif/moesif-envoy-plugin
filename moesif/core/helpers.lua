@@ -48,15 +48,19 @@ function _M.get_current_time_in_ms()
 end
 
 -- Function fetch raw body
-function _M.fetch_raw_body(handle)
+function _M.fetch_raw_body(handle, debug)
     local body = handle:body()
     if body ~= nil and body ~= '' then
         local body_size = body:length()
         local body_bytes = body:getBytes(0, body_size)
-        handle:logDebug("[moesif] Fetched Raw Body - " .. tostring(body_bytes)) 
+        if debug then
+            handle:logDebug("[moesif] Fetched Raw Body - " .. tostring(body_bytes)) 
+        end
         return tostring(body_bytes)
     else
-        handle:logDebug("[moesif] Fetched Raw Body is nil") 
+        if debug then
+            handle:logDebug("[moesif] Fetched Raw Body is nil") 
+        end
         return nil
     end
 end
