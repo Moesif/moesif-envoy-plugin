@@ -18,6 +18,11 @@ function json:onDecodeOfHTMLError(message, text, location, etc)
     return nil
 end
 
+-- Return nil when json decoding fails instead of erroring out
+function json:onDecodeError(message, text, location, etc)
+    return nil
+end
+
 -- Function to check if the body is of type json
 local function is_valid_json(body)
     return type(body) == "string" and string.sub(body, 1, 1) == "{" or string.sub(body, 1, 1) == "["
@@ -43,13 +48,19 @@ function _M.get_current_time_in_ms()
 end
 
 -- Function fetch raw body
-function _M.fetch_raw_body(handle)
+function _M.fetch_raw_body(handle, debug)
     local body = handle:body()
     if body ~= nil and body ~= '' then
         local body_size = body:length()
         local body_bytes = body:getBytes(0, body_size)
+        if debug then
+            handle:logDebug("[moesif] Fetched Raw Body - " .. tostring(body_bytes)) 
+        end
         return tostring(body_bytes)
     else
+        if debug then
+            handle:logDebug("[moesif] Fetched Raw Body is nil") 
+        end
         return nil
     end
 end
@@ -65,8 +76,6 @@ function process_data(raw_body, mask_fields)
         if json_decoded_body == nil then
             body_entity, body_transfer_encoding = base64_encode_body(raw_body)
         else
-            -- body_entity = json_decoded_body
-            -- body_transfer_encoding = "json"
             if next(mask_fields) == nil then
                 body_entity, body_transfer_encoding = json_decoded_body, 'json' 
             else
