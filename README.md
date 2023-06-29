@@ -1,12 +1,14 @@
 # Moesif Envoy Plugin
 
 The Moesif Envoy plugin captures API traffic from [Envoy Service Proxy](https://www.envoyproxy.io/)
-and logs it to [Moesif API Analytics](https://www.moesif.com). This plugin leverages an asynchronous design and doesn’t add any latency to your API calls.
+and logs it to [Moesif API Analytics and Monetization](https://www.moesif.com). This plugin leverages an asynchronous design and doesn’t add any latency to your API calls.
 
-- Envoy is an open-source Service Proxy.
-- Moesif is an API analytics and monitoring service.
+- Envoy is a L7 proxy and communication bus.
+- Moesif is an API analytics and monetization platform.
 
 [Source Code on GitHub](https://github.com/Moesif/moesif-envoy-plugin)
+
+> Moesif has both an Envoy plugin [built in WASM](https://www.moesif.com/docs/server-integration/envoy-wasm-plugin/) and one [built in Lua](https://www.moesif.com/docs/server-integration/envoy-lua-plugin/). For most projects including Gloo and Istio, Moesif recommends the WASM plugin for full compatibility.
 
 ## How to install
 
